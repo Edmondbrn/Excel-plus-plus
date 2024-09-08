@@ -1,0 +1,37 @@
+Query	Product	Specy	E-value	Identity(%)	Positives(%)	Gaps(%)
+amplicon_cluster_41582	non-ribosomal peptide synthetase 	Rhodoplanes sp. Z2-YC6860	3E-29	85	91	0
+amplicon_cluster_7082	No hits found	No hits found	No hits found	No hits found	No hits found	No hits found
+amplicon_cluster_73746	Amino acid adenylation, partial 	Pseudomonas savastanoi pv. glycinea	1E-35	91	92	0
+amplicon_cluster_53708	AMP-binding protein, partial 	Pectobacterium brasiliense	3E-30	73	86	0
+amplicon_cluster_3011	amino acid adenylation domain-containing protein/non-ribosomal peptide synthase protein (TIGR01720 family) 	Kutzneria viridogrisea	1E-21	71	84	0
+amplicon_cluster_52255	AMP-binding protein, partial 	Pseudomonas ogarae	2E-41	100	100	0
+amplicon_cluster_68323	non-ribosomal peptide synthetase 	Rhodoplanes sp. Z2-YC6860	2E-22	78	83	0
+amplicon_cluster_60687	amino acid adenylation domain-containing protein 	Lysobacter sp.	3E-29	88	91	0
+amplicon_cluster_26428	amino acid adenylation domain-containing protein 	Pseudomonas sp. SWRI179	5E-37	100	100	0
+amplicon_cluster_89295	No hits found	No hits found	No hits found	No hits found	No hits found	No hits found
+amplicon_cluster_14469	AMP-binding protein, partial 	Pseudomonas fuscovaginae	1E-31	80	88	0
+amplicon_cluster_73743	non-ribosomal peptide synthetase 	Rhodoplanes sp. Z2-YC6860	1E-28	83	89	0
+amplicon_cluster_8191	non-ribosomal peptide synthetase 	Microcoleus vaginatus	6E-27	73	86	0
+amplicon_cluster_77468	non-ribosomal peptide synthase/polyketide synthase 	Pseudomonas zanjanensis	5E-38	100	100	0
+amplicon_cluster_31525	AMP-binding protein, partial 	Pseudomonas brassicacearum	2E-35	95	98	2
+amplicon_cluster_36951	non-ribosomal peptide synthetase, partial 	Pseudomonas sp. OA65	1E-39	100	100	0
+amplicon_cluster_61266	HSAF biosynthetic non-ribosomal peptide synthetase/polyketide synthase 	Lysobacter capsici	4E-35	100	100	0
+amplicon_cluster_6694	non-ribosomal peptide synthetase 	Bradyrhizobium sp.	2E-22	84	89	0
+amplicon_cluster_54103	amino acid adenylation domain-containing protein 	Thioalkalivibrio sp.	5E-30	85	94	2
+amplicon_cluster_93870	No hits found	No hits found	No hits found	No hits found	No hits found	No hits found
+amplicon_cluster_36021	non-ribosomal peptide synthetase 	Pseudomonas brassicacearum	1E-28	95	95	5
+amplicon_cluster_33539	AMP-binding protein, partial 	Pseudomonas fluorescens	2E-36	100	100	0
+amplicon_cluster_62059	No hits found	No hits found	No hits found	No hits found	No hits found	No hits found
+amplicon_cluster_35025	non-ribosomal peptide synthetase 	Bradyrhizobium sp.	3E-24	84	88	0
+amplicon_cluster_37113	hybrid non-ribosomal peptide synthetase/type I polyketide synthase 	Pseudoxanthomonas sp. CF125	8E-27	88	91	0
+amplicon_cluster_85196	amino acid adenylation domain-containing protein 	Actinomycetospora chiangmaiensis	2E-25	77	86	0
+amplicon_cluster_55430	non-ribosomal peptide synthetase 	Lysobacter enzymogenes	5E-21	70	78	7
+amplicon_cluster_46804	hybrid non-ribosomal peptide synthetase/type I polyketide synthase 	Pseudoxanthomonas sp. CF125	3E-32	92	97	0
+amplicon_cluster_47934	AMP-binding protein 	Massilia sp.	3E-39	97	100	0
+amplicon_cluster_31442	non-ribosomal peptide synthetase 	Kutzneria albida	1E-21	71	84	0
+amplicon_cluster_65736	No hits found	No hits found	No hits found	No hits found	No hits found	No hits found
+amplicon_cluster_78694	non-ribosomal peptide synthase domain TIGR01720/amino acid adenylation domain-containing protein 	Rhizobiales bacterium GAS188	5E-21	72	86	2
+amplicon_cluster_34329	non-ribosomal peptide synthetase 	Bradyrhizobium sp.	5E-23	81	88	0
+amplicon_cluster_82064	non-ribosomal peptide synthetase 	Bradyrhizobium sp.	6E-33	100	100	0
+amplicon_cluster_20728	non-ribosomal peptide synthetase 	Bradyrhizobium sp.	8E-24	87	90	0
+amplicon_cluster_77516	No hits found	No hits found	No hits found	No hits found	No hits found	No hits found
