@@ -165,14 +165,3 @@ def regression(data : pd.DataFrame, x : str, y :str, type : str = "linear"):
         data["y_bis"] = (data[y] == data[y].unique()[0]).astype(int)
         model = pg.logistic_regression(data[x], data["y_bis"], penalty = "l2")
     return model
-
-
-df = pd.read_csv("ressources/fusion_ctrl.csv", sep = ",")
-# print(wilcox_test(df, "Shannon_16S", "Irrigation_NRPS", "Watered", "Drought", "WEEK", 4))
-# print(student_test(df, "Shannon_16S", "Irrigation_NRPS", "Watered", "Drought", "WEEK", 4))
-# print(kruskall(df, "Shannon_16S", "Irrigation_NRPS"))
-# print(anova(df, "Shannon_16S", ["Irrigation_NRPS", "WEEK"]))
-
-# print(chi2(df, "Irrigation_NRPS", "Irrigation_NRPS", True))
-# print(fisher(df, "Irrigation_NRPS", "Irrigation_NRPS"))
-print(regression(df, x = "Shannon_NRPS", y = "Irrigation_NRPS", type =  "logistic"))

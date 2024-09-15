@@ -20,6 +20,7 @@ class plot():
         self.ylab_title = "" # title of the Y axis
         self.Legend = ""
         self.Color = col # color by for the plot (sub selection)
+        self.Fill = None
         self.facet = None # facet of the plot (sub plot)
         self.Facet_size = 14 if self.facet is not None else None
         self.angle_X = 0 # angle for X axis
@@ -39,12 +40,19 @@ class plot():
         geom_mapping = {
         "violin": geom_violin(),
         "box": geom_boxplot(),
-        "bar": geom_bar(stat="identity"),
+        "bar": None,
+        "hist": geom_histogram(binwidth=0.5),
         "scatter": geom_point(),
         "regression": geom_smooth(method="lm")
     }
+        if self.type == "bar":
+            self.format_bar()
+            self.plot = ggplot(data=self.data_format, mapping=aes(x="group", y='mean', fill = "group"))
+            self.plot += geom_bar(stat="identity")
+            self.plot += geom_errorbar(aes(ymin='xmin', ymax='xmax'), color="black")
+        else:
         # Ajoutez l'esthétique color dans le mapping global de ggplot
-        self.plot = ggplot(data=self.data, mapping=aes(x=self.X_var, y=self.Y_var, color=self.Color))
+            self.plot = ggplot(data=self.data, mapping=aes(x=self.X_var, y=self.Y_var, color=self.Color))
         self.plot += geom_mapping.get(self.type, "Error with the plot type. Please check your input.")
 
         self.plot += theme(
@@ -65,7 +73,12 @@ class plot():
             os.mkdir("tmp")
         self.plot.save("tmp/plot_raw.png")
         return self.plot
-    
+
+    def format_bar(self):
+        self.data_format = self.data.groupby(self.X_var)[self.Y_var].agg(["mean", "median", "std"]).reset_index() # remove index column name
+        self.data_format['xmin'] = self.data_format['mean'] - self.data_format['std']
+        self.data_format['xmax'] = self.data_format['mean'] + self.data_format['std']
+        self.data_format.rename(columns={self.X_var: 'group'}, inplace=True)
 
     def qqplot(self):
         """
