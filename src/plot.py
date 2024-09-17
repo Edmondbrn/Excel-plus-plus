@@ -3,13 +3,14 @@ import os
 from plotnine import *
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pingouin as pg
+from pingouin import qqplot
+from stat_python import *
 
 os.chdir(os.path.dirname(__file__))
 
 class plot():
 
-    def __init__(self, pandas_table, type, xvar, yvar, col):
+    def __init__(self, pandas_table, type, xvar, yvar, col, test = None, plot_NA = False):
         self.type = type # type of plot
         self.xlab_size = 12 # size of the x variable
         self.ylab_size = 12 # same for y
@@ -29,7 +30,9 @@ class plot():
         self.data = pandas_table # value for the pandas dataframe
         self.X_var = xvar
         self.Y_var = yvar
-        self.plot = None
+        self.test = test # value for teh test to perform if necessary
+        self.plot_NA = plot_NA
+        self.plot = None # the value to contain the plot itself
 
     
     def plot_data(self):
@@ -75,6 +78,9 @@ class plot():
         return self.plot
 
     def format_bar(self):
+        """
+        Function that transforms data and compute the import value for a barplot
+        """
         self.data_format = self.data.groupby(self.X_var)[self.Y_var].agg(["mean", "median", "std"]).reset_index() # remove index column name
         self.data_format['xmin'] = self.data_format['mean'] - self.data_format['std']
         self.data_format['xmax'] = self.data_format['mean'] + self.data_format['std']
@@ -85,9 +91,50 @@ class plot():
         Method to plot the quantile-quantile plot for the noramlity check
         """
         sns.set_theme("darkgrid")
-        pg.qqplot(x = self.X_var, dist = "norm", confidence = True)
+        qqplot(x = self.X_var, dist = "norm", confidence = True)
         plt.savefig("tmp/qqplot_raw.png")
 
+    def stat_annot(self):
+        """
+        Function which compute statistical test and display significant or all results
+        """
+        self.dict_stat = {0.05 : "*", 0.01 : "* *", 0.001 : "* * *", 0.0001 : "* * * *"}
+        theme_set(theme_bw()) # change background
+        self.unique_x = self.data[self.X_var].unique() # get all the value in the column
+        self.unique_x.sort() # organize them by alphabetical order
+        self.y = 1
+        for self.cpt in range(len(self.unique_x) - 1):# browse all the factor
+            self.var1 = self.unique_x[self.cpt]
+            for self.j in range(self.cpt +1, len(self.unique_x)): # create all the pairs if necessary
+                self.var2 = self.unique_x[self.j]
+
+                model = st.student_test(df, self.Y_var, self.X_var, var1 , var2)
+
+                self.pvalue = model['p-val'].values[0]
+                self.pvalue = self.pval_correction
+                if self.pvalue < 0.05 and not self.plot_NA: # display only significant test
+                    self.plot_stat
+                else: # print all the test 
+                    self.plot_stat                
+                   
+
+    def plot_stat(self) -> None:
+        """
+        Function to add * and segment for statistical annotations
+        """
+        self.maxi = max(max(self.data.loc[self.data[self.X_var] == self.var1, self.Y_var]), 
+                        max(self.data.loc[self.data[self.X_var] == self.var2, self.Y_var]))
+        
+        self.plot += annotate("segment", x=self.var1, xend=self.var2, y = self.maxi + 0.15 * self.y, yend = self.maxi + 0.15 * self.y, color="black")
+        self.plot += annotate("segment", x=self.var1, xend=self.var1, y = self.maxi + 0.15 * self.y - 0.01 * self.maxi, yend = self.maxi + 0.15 * self.y, color = "black")
+        self.plot += annotate("segment", x=self.var2, xend=self.var2, y = self.maxi + 0.15 * self.y - 0.01 * self.maxi, yend = self.maxi + 0.15 * self.y, color = "black")
+        self.plot += annotate("text")
+        for threshold in sorted(self.dict_stat.keys(), reverse=False): # help to quantify the annotation for stat
+            if self.pvalue < threshold:
+                symbol = self.dict_stat[threshold]
+                break
+        self.plot += annotate("text", x=(self.cpt + 1 + self.j + 1) / 2, y = self.maxi + 0.15 * self.y + 0.02, label=symbol, ha='center', va='bottom', color="black")
+        self.y += 1
 
     # # setters
     # def setType(self, value):

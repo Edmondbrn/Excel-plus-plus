@@ -1,7 +1,8 @@
 import pandas as pd
 import pingouin as pg
 import scipy.stats as st
-
+import numpy as np
+import scikit_posthocs as sp
 
 
 def wilcox_test(data : pd.DataFrame, col_num: str, 
@@ -67,7 +68,7 @@ def student_test(data : pd.DataFrame, col_num: str,
     return model
 
 
-def kruskall(data : pd.DataFrame, num_var : str, factor : str, factor_bis : str = None, var_bis : str = None):
+def kruskall(data : pd.DataFrame, num_var : str, factor : str, method : str = "bonferroni", factor_bis : str = None, var_bis : str = None):
     """
     factor : column with the categorical data
     factor_bis : another column to filter data before the test if necessary
@@ -76,15 +77,30 @@ def kruskall(data : pd.DataFrame, num_var : str, factor : str, factor_bis : str 
     if factor_bis: # if you want to filter data before the test
         data = data.loc[data[factor_bis] == var_bis]
     model = pg.kruskal(data, num_var, factor)
-    return model
+    if model["p-unc"] < 0.05:
+        # Perform Dunn's test
+        dunn_result = sp.posthoc_dunn(data, val_col = num_var, group_col= factor , p_adjust= method)
+        return dunn_result
+    else:
+        return f"No significant pair with Kruskall-Wallis test {model['p-unc']}"
 
-def anova(data : pd.DataFrame, num_var : str, factor : list[str]):
+def anova(data : pd.DataFrame, num_var : str, factor : list[str], pval_corr : str = "tukey"):
     """
     num_var : column with the numerical data
     factor : list of column with factor variables
     """
     model = pg.anova(data,num_var, factor)
+    if model["p-unc"] < 0.05 :
+        if pval_corr == "tukey":
+            tukey_test = tukey(data, num_var, factor[0])
+        elif pval_corr == "bonferroni" or pval_corr == "fdr":
+            pass
     return model
+
+def tukey(data, col_num, col_cat):
+    model = pg.pairwise_tukey(dv = data[col_num], between = data[col_cat])
+    return model
+
 
 def table(data: pd.DataFrame, col1: str, col2 : str, col3 : str = None) -> pd.DataFrame:
     """
@@ -146,7 +162,7 @@ def corr(data, col1 : str, col2 : str, method : str, alternative : str = 'two-si
 
     alternative : two-sided, less, greater
     """
-    model = pg.corr(x = data[col1], y = data[col2], method = method, alternative = "two-sided")
+    model = pg.corr(x = data[col1], y = data[col2], method = method, alternative = alternative)
     return model
 
 def regression(data : pd.DataFrame, x : str, y :str, type : str = "linear"):
@@ -165,3 +181,39 @@ def regression(data : pd.DataFrame, x : str, y :str, type : str = "linear"):
         data["y_bis"] = (data[y] == data[y].unique()[0]).astype(int)
         model = pg.logistic_regression(data[x], data["y_bis"], penalty = "l2")
     return model
+
+def correction(pval : list[float], method : str):
+    """
+    Function to correct the pvalue with the precised method
+    """
+    pval = np.array(pval)
+    if method == "bonferonni":
+        pval = pval * len(pval)
+    elif method == "fdr":
+        pval = st.false_discovery_control(pval)
+
+    return pval
+
+
+
+def dico_function(data : pd.DataFrame, col_num : str = None, col_num2 : str = None, col_num3 : str = None,
+                  col_cat : str = None, value_cat1 : str = None, value_cat2 : str = None, 
+                  col_catego_2 : str = None, value_catego_2 : str = None,
+                  col_catego_3 : str = None,
+                  corr_method : str = None, regression_method : str = None, pairwise_corr : str = "bonferroni",
+                  paired : bool = False, alternative : str = "two-sided"):
+   """
+   Function which stores all the statisical test to use them later in the plot.py file
+   """
+    dict_test = {
+        "ttest": lambda: student_test(data, col_num, col_cat, value_cat1, value_cat2, col_catego_2, value_catego_2, paired, alternative),
+        "wilcox": lambda: wilcox_test(data, col_num, col_cat, value_cat1, value_cat2, col_catego_2, value_catego_2, paired, alternative),
+        "chi2": lambda: chi2(data, col_cat, col_catego_2, paired),
+        "fisher": lambda: fisher(data, col_cat, col_catego_2, alternative),
+        "anova": lambda: anova(data, col_num, [col_cat, col_catego_2, col_catego_3], pairwise_corr),
+        "kruskall": lambda: kruskall(data, col_num, col_cat, pairwise_corr, col_catego_2, value_catego_2),
+        "corr": lambda: corr(data, col_num, col_num2, corr_method, alternative),
+        "regression": lambda: regression(data, col_num, col_num2, regression_method)
+    }
+
+    return dict_test
