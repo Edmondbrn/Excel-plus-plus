@@ -7,7 +7,6 @@ import scikit_posthocs as sp
 
 def wilcox_test(data : pd.DataFrame, col_num: str, 
                 col_catego : str, cat1 : str, cat2 : str, 
-                col_catego_bis : str = None, catbis : str = None,
                 paired : bool = False, alternative = "two-sided"):
     """
     Function which performs a wilcoxon MannWhitney test in python.
@@ -20,12 +19,8 @@ def wilcox_test(data : pd.DataFrame, col_num: str,
     catbis : the value to check in the col_catego_bis
     paired : booléen to know if data are independant or not (change the type of test)
     """
-    if col_catego_bis and catbis:
-        filter1 = (data[col_catego] == cat1) & (data[col_catego_bis] == catbis)
-        filter2 = (data[col_catego] == cat2) & (data[col_catego_bis] == catbis)
-    else:
-        filter1 = data[col_catego] == cat1
-        filter2 = data[col_catego] == cat2
+    filter1 = data[col_catego] == cat1
+    filter2 = data[col_catego] == cat2
 
     if paired:
         model = pg.wilcoxon(
@@ -44,8 +39,7 @@ def wilcox_test(data : pd.DataFrame, col_num: str,
 
 
 def student_test(data : pd.DataFrame, col_num: str, 
-                col_catego : str, cat1 : str, cat2 : str, 
-                col_catego_bis : str = None, catbis : str = None,
+                col_catego : str, cat1 : str, cat2 : str,
                 paired : bool = False, alternative = "two-sided"):
     """
     Function which performs a wilcoxon MannWhitney test in python.
@@ -58,31 +52,27 @@ def student_test(data : pd.DataFrame, col_num: str,
     catbis : the value to check in the col_catego_bis
     paired : booléen to know if data are independant or not (change the type of test)
     """
-    if col_catego_bis and catbis:
-        filter1 = (data[col_catego] == cat1) & (data[col_catego_bis] == catbis)
-        filter2 = (data[col_catego] == cat2) & (data[col_catego_bis] == catbis)
-    else:
-        filter1 = data[col_catego] == cat1
-        filter2 = data[col_catego] == cat2
+
+    filter1 = data[col_catego] == cat1
+    filter2 = data[col_catego] == cat2
     model = pg.ttest(data.loc[filter1, col_num], data.loc[filter2, col_num], paired = paired, alternative = alternative)
     return model
 
 
-def kruskall(data : pd.DataFrame, num_var : str, factor : str, method : str = "bonferroni", factor_bis : str = None, var_bis : str = None):
+def kruskall(data : pd.DataFrame, num_var : str, factor : str, method : str = "bonferroni"):
     """
     factor : column with the categorical data
     factor_bis : another column to filter data before the test if necessary
     var_bis : the value to check in the col_catego_bis
     """
-    if factor_bis: # if you want to filter data before the test
-        data = data.loc[data[factor_bis] == var_bis]
+   
     model = pg.kruskal(data, num_var, factor)
-    if model["p-unc"] < 0.05:
+    if model["p-unc"].values[0] < 0.05:
         # Perform Dunn's test
         dunn_result = sp.posthoc_dunn(data, val_col = num_var, group_col= factor , p_adjust= method)
-        return dunn_result
+        return model, dunn_result
     else:
-        return f"No significant pair with Kruskall-Wallis test {model['p-unc']}"
+        return model
 
 def anova(data : pd.DataFrame, num_var : str, factor : list[str], pval_corr : str = "tukey"):
     """
@@ -90,17 +80,42 @@ def anova(data : pd.DataFrame, num_var : str, factor : list[str], pval_corr : st
     factor : list of column with factor variables
     """
     model = pg.anova(data,num_var, factor)
-    if model["p-unc"] < 0.05 :
+    if model["p-unc"].values[0] < 0.05 :
         if pval_corr == "tukey":
             tukey_test = tukey(data, num_var, factor[0])
+            tukey_test = format_tukey(tukey_test)
         elif pval_corr == "bonferroni" or pval_corr == "fdr":
             pass
+        return model, tukey_test
     return model
 
 def tukey(data, col_num, col_cat):
-    model = pg.pairwise_tukey(dv = data[col_num], between = data[col_cat])
+    model = pg.pairwise_tukey(col_num, between = col_cat, data = data)
     return model
 
+def format_tukey(tukey_test):
+    """
+    Format the Tukey test result to match the Dunn test result format.
+    
+    Parameters:
+    tukey_test (pd.DataFrame): The result of Tukey's HSD test.
+    
+    Returns:
+    pd.DataFrame: The formatted result.
+    """
+    # Extract unique categories
+    categories = pd.unique(tukey_test[['A', 'B']].values.ravel('K'))
+    categories.sort()
+    
+    # Create an empty DataFrame with categories as both rows and columns
+    formatted_tukey = pd.DataFrame(index=categories, columns=categories)
+    
+    # Fill the DataFrame with p-values
+    for _, row in tukey_test.iterrows():
+        formatted_tukey.at[row['A'], row['B']] = row['p-tukey']
+        formatted_tukey.at[row['B'], row['A']] = row['p-tukey']
+    
+    return formatted_tukey
 
 def table(data: pd.DataFrame, col1: str, col2 : str, col3 : str = None) -> pd.DataFrame:
     """
@@ -202,9 +217,9 @@ def dico_function(data : pd.DataFrame, col_num : str = None, col_num2 : str = No
                   col_catego_3 : str = None,
                   corr_method : str = None, regression_method : str = None, pairwise_corr : str = "bonferroni",
                   paired : bool = False, alternative : str = "two-sided"):
-   """
-   Function which stores all the statisical test to use them later in the plot.py file
-   """
+    """
+    Function which stores all the statistical tests to use them later in the plot.py file
+    """
     dict_test = {
         "ttest": lambda: student_test(data, col_num, col_cat, value_cat1, value_cat2, col_catego_2, value_catego_2, paired, alternative),
         "wilcox": lambda: wilcox_test(data, col_num, col_cat, value_cat1, value_cat2, col_catego_2, value_catego_2, paired, alternative),

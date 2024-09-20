@@ -188,8 +188,10 @@ class excel(Tk):
         self.plot_button.grid(row=self.row + 9, column=0, columnspan=4, pady=10) 
 
     def start_window_plot(self):
-        self.plot_raw = plot(self.data, self.graph_type.get(), self.param_X.get(), self.param_Y.get(), self.param_Col.get())
+        self.plot_raw = plot(self.data, self.graph_type.get(), self.param_X.get(), self.param_Y.get(), self.param_Col.get(), test = "kruskall")
         self.plot_raw.plot_data() # create the first raw plot
+        self.plot_raw.stat_annot()
+        self.plot_raw.plot.save("tmp/plot_raw.png")
         self.plot_window = plot_window(self.frame, self.plot_raw)
     
     def stat_window(self):
