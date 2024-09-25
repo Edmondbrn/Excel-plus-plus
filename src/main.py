@@ -153,8 +153,8 @@ class excel(Tk):
         self.graph_value = ["violin", "box", "bar", "scatter", "regression"]
         self.separator_plot = OptionMenu(self.graph_window, self.graph_type, self.graph_value[0],*self.graph_value)
 
-        self.test_type.set("ttest") # menu for the test
-        self.test_value = ["ttest", "wilcox", "chi2", "fisher", "Pearson correlation", "linear regression", "Anova", "Kruskall"]
+        self.test_type.set("None") # menu for the test
+        self.test_value = ["None","ttest", "wilcox", "chi2", "fisher", "Pearson correlation", "linear regression", "Anova", "Kruskall"]
         self.separator_test = OptionMenu(self.graph_window, self.test_type, self.test_value[0],*self.test_value)
 
         self.plot_param = Label(self.graph_window, text = "Please choose the parameters for the plot:") # create the menu for choosing the parameters for the plot
@@ -188,10 +188,9 @@ class excel(Tk):
         self.plot_button.grid(row=self.row + 9, column=0, columnspan=4, pady=10) 
 
     def start_window_plot(self):
-        self.plot_raw = plot(self.data, self.graph_type.get(), self.param_X.get(), self.param_Y.get(), self.param_Col.get(), test = "kruskall")
+        self.plot_raw = plot(self.data, self.graph_type.get(), self.param_X.get(), self.param_Y.get(), self.param_Col.get(), test = self.test_type.get())
         self.plot_raw.plot_data() # create the first raw plot
-        self.plot_raw.stat_annot()
-        self.plot_raw.plot.save("tmp/plot_raw.png")
+        # self.plot_raw.plot.save("tmp/plot_raw.png")
         self.plot_window = plot_window(self.frame, self.plot_raw)
     
     def stat_window(self):

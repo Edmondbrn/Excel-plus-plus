@@ -32,6 +32,10 @@ class plot():
         self.Y_var = yvar
         self.Z_var = zvar
 
+        self.Line_space_size = 1.05 # variable for the y adjustement for annotations in plot
+        self.Star_space_size = 1.01 # idem but for the *
+        self.Star_size = 12 # size of the star
+
         self.cat1_content = None # value for student / wilcoxon / anova / kruskall tests
         self.cat2_content = None
         self.paired = None
@@ -50,6 +54,7 @@ class plot():
         Method that creates the base plot for everything
         """
         
+        theme_set(theme_bw()) # change background
         geom_mapping = {
         "violin": geom_violin(),
         "box": geom_boxplot(),
@@ -67,7 +72,6 @@ class plot():
         # Ajoutez l'esthétique color dans le mapping global de ggplot
             self.plot = ggplot(data=self.data, mapping=aes(x=self.X_var, y=self.Y_var, color=self.Color))
         self.plot += geom_mapping.get(self.type, "Error with the plot type. Please check your input.")
-
         self.plot += theme(
             axis_text_x=element_text(size=self.xlab_size, angle=self.angle_X),
             axis_text_y=element_text(size=self.ylab_size, angle=self.angle_Y),
@@ -84,6 +88,8 @@ class plot():
         
         if not os.path.isdir("tmp"):
             os.mkdir("tmp")
+        if self.test != "None":
+            self.stat_annot()
         self.plot.save("tmp/plot_raw.png")
         return self.plot
 
@@ -109,15 +115,12 @@ class plot():
         Function which compute statistical test and display significant or all results
         """
         self.dict_stat = {0.05 : "*", 0.01 : "* *", 0.001 : "* * *", 0.0001 : "* * * *"}
-        theme_set(theme_bw()) # change background
         self.unique_x = self.data[self.X_var].unique() # get all the value in the column
         self.unique_x.sort() # organize them by alphabetical order
         self.maxi = 0
         self.choose_stat_function() # compute the p values
         if len(self.model) > 1 :
-            print(self.model[0].columns)
-            print(self.model)
-            if self.model[0]["p-unc"].values[0] > 0.05:
+            if self.model[0]["p-unc"].values[0] > 0.05: # if kurkakll or ANOVA isn't significant
                 return
             else:
                 self.model = self.model[1]
@@ -152,7 +155,6 @@ class plot():
             self.model = chi2(self.data, self.categorical[0], self.categorical[1], self.paired)
         elif self.test == "kruskall":
             self.model = kruskall(self.data, self.numeric[0], self.categorical[0], self.correction_method)
-            print("test")
         elif self.test == "anova":
             self.model = anova(self.data, self.numeric[0], self.categorical, self.correction_method)
         elif self.test == "corr":
@@ -178,14 +180,12 @@ class plot():
         """
         Function to add * and segment for statistical annotations
         """
-        self.ratio = 1.05
-        self.star_ratio = 1.01
-        self.star_size = 12
+    
 
-        self.max_1 = max(self.data.loc[self.data[self.X_var] == self.var1, self.Y_var])
-        self.max_2 = max((self.data.loc[self.data[self.X_var] == self.var2, self.Y_var]))
-        self.maxi = max(self.max_1, self.max_2, self.maxi)
-        self.maxi = self.maxi * self.ratio
+        self.max_1 = max(self.data.loc[self.data[self.X_var] == self.var1, self.Y_var]) # get the max of the first var
+        self.max_2 = max((self.data.loc[self.data[self.X_var] == self.var2, self.Y_var])) # get the max of the second one
+        self.maxi = max(self.max_1, self.max_2, self.maxi) # select the maximim between both and the previous one
+        self.maxi = self.maxi * self.Line_space_size # increase a little the y position for the next annotation
    
         self.plot += annotate("segment", x=self.var1, xend=self.var2, y = self.maxi, yend = self.maxi, color="black")
         self.plot += annotate("segment", x=self.var1, xend=self.var1, y = self.maxi - 0.01 * self.maxi, yend = self.maxi, color = "black")
@@ -193,11 +193,9 @@ class plot():
         self.plot += annotate("text")
         for threshold in sorted(self.dict_stat.keys(), reverse=False): # help to quantify the annotation for stat
             if self.pvalue < threshold:
-                print(self.pvalue)
                 self.symbol = self.dict_stat[threshold]
-                print(self.symbol)
-                self.plot += annotate("text", x=(self.cpt + 1 + self.j + 1) / 2, y = self.maxi * self.star_ratio , label= self.symbol, 
-                                    ha='center', va='bottom', color="black", size = self.star_size)
+                self.plot += annotate("text", x=(self.cpt + 1 + self.j + 1) / 2, y = self.maxi * self.Star_space_size , label= self.symbol, 
+                                    ha='center', va='bottom', color="black", size = self.Star_size) # add the **** if necessary
                 break
 
     

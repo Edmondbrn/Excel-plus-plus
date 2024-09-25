@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter.filedialog import asksaveasfilename
+from tkinter import messagebox
 import os
 import shutil
 
@@ -62,15 +63,20 @@ class plot_window():
             "xlab title" : [self.raw_plot.xlab_title],
             "xlab size" : [self.raw_plot.xlab_size],
             "ylab title" : [self.raw_plot.ylab_title],
-            "ylab size" : [self.raw_plot.ylab_size],
+            "ylab size" : [self.raw_plot.ylab_size],      
         }
+        if self.raw_plot.test != "None":
+            self.list_label["Star size"] = [self.raw_plot.Star_size]
+            self.list_label["Star space size"] = [self.raw_plot.Star_space_size]
+            self.list_label["Line space size"] = [self.raw_plot.Line_space_size]
+
         self.row = 0
         for label, var in self.list_label.items():
             self.text = Label(self.custom_label, text=label)
             self.text.grid(row=self.row, column=0, pady=10, padx=10, sticky=W)
             
             if "size" in label:
-                self.box = Spinbox(self.custom_label, from_=1, to=100)
+                self.box = Spinbox(self.custom_label, from_= var[0], to=100)
             else:
                 self.box = Entry(self.custom_label)
                 self.box.insert(0, var[0])
@@ -89,7 +95,10 @@ class plot_window():
         for label, var in self.list_label.items(): # browse the label and the attributes
             self.new_val = var[1].get() # get the entry by the user
             if "size" in label :
-                self.new_val = int(self.new_val)
+                try:
+                    self.new_val = float(self.new_val)
+                except Exception as e:
+                    messagebox.showerror(f"Please use the . to specify a float number in a spinbox : \n {e}")
             setattr(self.raw_plot, label.replace(" ", "_"), self.new_val) # update the object with the new value
         self.raw_plot.plot_data()
         self.canva.destroy()

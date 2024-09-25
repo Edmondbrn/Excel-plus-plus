@@ -70,9 +70,9 @@ def kruskall(data : pd.DataFrame, num_var : str, factor : str, method : str = "b
     if model["p-unc"].values[0] < 0.05:
         # Perform Dunn's test
         dunn_result = sp.posthoc_dunn(data, val_col = num_var, group_col= factor , p_adjust= method)
-        return model, dunn_result
     else:
-        return model
+        dunn_result = None
+    return model, dunn_result
 
 def anova(data : pd.DataFrame, num_var : str, factor : list[str], pval_corr : str = "tukey"):
     """
@@ -82,12 +82,13 @@ def anova(data : pd.DataFrame, num_var : str, factor : list[str], pval_corr : st
     model = pg.anova(data,num_var, factor)
     if model["p-unc"].values[0] < 0.05 :
         if pval_corr == "tukey":
-            tukey_test = tukey(data, num_var, factor[0])
-            tukey_test = format_tukey(tukey_test)
+            posthoc = tukey(data, num_var, factor[0])
+            posthoc = format_tukey(posthoc)
         elif pval_corr == "bonferroni" or pval_corr == "fdr":
-            pass
-        return model, tukey_test
-    return model
+            posthoc = None # A FAIRE
+        else:
+            posthoc = None
+    return model, posthoc
 
 def tukey(data, col_num, col_cat):
     model = pg.pairwise_tukey(col_num, between = col_cat, data = data)
